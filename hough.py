@@ -2,6 +2,9 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pylab import *
+mpl.rcParams['font.sans-serif'] = ['SimHei']  # 添加这两条可以让图形显示中文
+
 
 # 1.导入图片
 img_path = r'img/test.jpg'
@@ -60,13 +63,17 @@ upper=np.array([31,255,255])
 hsv = cv2.cvtColor(img_src,cv2.COLOR_BGR2HSV)
 mask = cv2.inRange(hsv,lower,upper)
 im1 = cv2.bitwise_and(img_src, img_src, mask=mask)
-# cv2.imshow('roi',im1)
+
+# im1_show = cv2.resize(im1, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+# cv2.imshow('roi',im1_show)
 # cv2.waitKey(0)
 
 
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))  # kernel大小，准备进行开运算
 im2 = cv2.morphologyEx(im1, cv2.MORPH_OPEN, kernel)  # 开运算
-cv2.imshow('open', im2)
+
+im2_show = cv2.resize(im2, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('open', im2_show)
 cv2.waitKey(0)
 # gray = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
 # cv2.imshow('gray', gray)
@@ -87,12 +94,16 @@ kernel_d = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 2))
 # im_zclose_show = cv2.cvtColor(im_zclose,cv2.COLOR_BGR2RGB)
 #横向闭运算
 im_hclose = cv2.morphologyEx(im2,cv2.MORPH_CLOSE,kernel_d,iterations=1)
-cv2.imshow('im_close', im_hclose)
+
+im_hclose_show = cv2.resize(im2, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('im_close', im_hclose_show)
 cv2.waitKey(0)
 #纵向闭运算
 kernel_z = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2,21))
 im_zclose = cv2.morphologyEx(im_hclose,cv2.MORPH_CLOSE,kernel_z,iterations=1)
-cv2.imshow('im_close', im_zclose)
+
+im_zclose_resize = cv2.resize(im_zclose, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('im_close', im_zclose_resize)
 cv2.waitKey(0)
 im_zclose_show = cv2.cvtColor(im_zclose,cv2.COLOR_BGR2RGB)
 
@@ -100,18 +111,54 @@ im_zclose_show = cv2.cvtColor(im_zclose,cv2.COLOR_BGR2RGB)
 # 二值化
 roi_gray = cv2.cvtColor(im_zclose,cv2.COLOR_BGR2GRAY)
 thresh,roi_binary = cv2.threshold(roi_gray,50,255,cv2.THRESH_BINARY)
-cv2.imshow('roi_binary',roi_binary)
+# roi_binary = cv2.adaptiveThreshold(roi_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)  # 二值化
+
+roi_binary_show = cv2.resize(roi_binary, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('roi_binary',roi_binary_show)
 cv2.waitKey(0)
 # thresh_otsu, binary_image = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 # cv2.imshow('gray_roi',roi_gray)
 # cv2.waitKey(0)
-# 2.执行canny
+# 执行canny
 img_edges = cv2.Canny(roi_binary, 30, 110, apertureSize=3)
-cv2.imshow('img_edges', img_edges)
+
+img_edges_show = cv2.resize(img_edges, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('img_edges', img_edges_show)
 cv2.waitKey(0)
 
+# 轮廓检测
+contours, hierarchy = cv2.findContours(roi_binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+# contours.sort(key = cv2.contourArea, reverse=True)
+cnt_area = []
 
-# 3.霍夫曼直线检测
+for i in range(len(contours)):
+    area = cv2.contourArea(contours[i])
+    cnt_area.append(area)
+
+plt.plot(cnt_area,'ro-', color='#4169E1', alpha=0.8, linewidth=1, label='一些数字')
+# plt.legend(loc="upper right")
+plt.xlabel('下标索引')
+plt.ylabel('轮廓面积')
+plt.show()
+
+contours_draw = []
+painted = []
+for i in range(len(cnt_area)):
+    current = len(cnt_area) - i - 1
+    # if cnt_area[current]>30000 and cnt_area[current]<50000:
+    if cnt_area[current] > 15000:
+        if current in painted:
+            continue
+        painted.append(hierarchy[0][current][3])
+        painted.append(current)
+        contours_draw.append(contours[current])
+
+img = cv2.drawContours(im_zclose, contours_draw, -1, (0, 255, 0), 2)
+
+img_show = cv2.resize(img, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('contours', img_show)
+cv2.waitKey(0)
+# 霍夫曼直线检测
 lines = cv2.HoughLines(img_edges, 1, np.pi / 180, 90)
 
 # 4.显示直线
@@ -141,9 +188,6 @@ plt.axis("off")
 plt.subplot(224)
 plt.imshow(img_rgb)
 plt.axis("off")
-
-
-
 
 plt.show()
 
