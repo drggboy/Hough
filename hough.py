@@ -105,9 +105,22 @@ im_zclose = cv2.morphologyEx(im_hclose,cv2.MORPH_CLOSE,kernel_z,iterations=1)
 im_zclose_resize = cv2.resize(im_zclose, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
 cv2.imshow('im_close', im_zclose_resize)
 cv2.waitKey(0)
+
 im_zclose_show = cv2.cvtColor(im_zclose,cv2.COLOR_BGR2RGB)
 
+# 十字闭运算
+kernel_c2 = cv2.getStructuringElement(cv2.MORPH_CROSS, (41, 41))
+im_cross_close = cv2.morphologyEx(im_zclose,cv2.MORPH_CLOSE,kernel_c2,iterations=1)
 
+im_cross_close_show = cv2.resize(im_cross_close, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('im_cross_close', im_cross_close_show)
+cv2.waitKey(0)
+
+# 减法
+sub = im_cross_close - im_zclose
+sub_show = cv2.resize(sub, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('sub',sub_show)
+cv2.waitKey(0)
 # 二值化
 roi_gray = cv2.cvtColor(im_zclose,cv2.COLOR_BGR2GRAY)
 thresh,roi_binary = cv2.threshold(roi_gray,50,255,cv2.THRESH_BINARY)
@@ -155,8 +168,8 @@ for i in range(len(cnt_area)):
 
 img = cv2.drawContours(im_zclose, contours_draw, -1, (0, 255, 0), 2)
 
-img_show = cv2.resize(img, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
-cv2.imshow('contours', img_show)
+img_contours_show = cv2.resize(img, None, fx=0.6, fy=0.6, interpolation=cv2.INTER_AREA)
+cv2.imshow('contours', img_contours_show)
 cv2.waitKey(0)
 # 霍夫曼直线检测
 lines = cv2.HoughLines(img_edges, 1, np.pi / 180, 90)
