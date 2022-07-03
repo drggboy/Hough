@@ -1,10 +1,11 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import hough_del
+import DBSCAN
 
-from pylab import *
-mpl.rcParams['font.sans-serif'] = ['SimHei']  # 添加这两条可以让图形显示中文
-
+# from pylab import *
+# mpl.rcParams['font.sans-serif'] = ['SimHei']  # 添加这两条可以让图形显示中文
 
 # 1.导入图片
 img_path = r'img/test.jpg'
@@ -148,11 +149,12 @@ for i in range(len(contours)):
     area = cv2.contourArea(contours[i])
     cnt_area.append(area)
 
-plt.plot(cnt_area,'ro-', color='#4169E1', alpha=0.8, linewidth=1, label='一些数字')
-# plt.legend(loc="upper right")
-plt.xlabel('下标索引')
-plt.ylabel('轮廓面积')
-plt.show()
+# 绘制轮廓面积折线图
+# plt.plot(cnt_area,'ro-', color='#4169E1', alpha=0.8, linewidth=1, label='xxx')
+# # plt.legend(loc="upper right")
+# plt.xlabel('下标索引')
+# plt.ylabel('轮廓面积')
+# plt.show()
 
 contours_draw = []
 painted = []
@@ -173,10 +175,25 @@ cv2.imshow('contours', img_contours_show)
 cv2.waitKey(0)
 # 霍夫曼直线检测
 lines = cv2.HoughLines(img_edges, 1, np.pi / 180, 90)
+# 散点图
+data1 = np.array(lines)
+data1 = np.reshape(data1, (-1,2))
 
-# 4.显示直线
-for line in lines:
-    rho, theta = line[0]
+# 保存数据，用于测试密度聚类
+# np.save('data.npy',data1)
+
+x_rho_raw = data1[:, 0]
+y_theta_raw = data1[:, 1]
+plt.subplot(121)
+plt.title('Result Analysis')
+plt.xlabel('rho')  # 横坐标轴标题
+plt.ylabel('theta')  # 纵坐标轴标题
+plt.scatter(x_rho_raw, y_theta_raw, c='k', marker='.')
+
+img_blue_line_raw = cv2.cvtColor(img_src, cv2.COLOR_BGR2RGB)
+for line in data1:
+    # rho, theta = line[0]
+    rho, theta = line
     a = np.cos(theta)
     b = np.sin(theta)
 
@@ -186,7 +203,39 @@ for line in lines:
     y1 = int(y0 + 2000 * a)
     x2 = int(x0 - 2000 * (-b))
     y2 = int(y0 - 2000 * a)
-    cv2.line(img_rgb, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    cv2.line(img_blue_line_raw, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
+
+
+lines = DBSCAN.DBSCAN_drawlist(lines)
+# lines = hough_del.hough_drawlist(lines)
+
+# 绘制散点图
+data=np.array(lines)
+x_rho = data[:, 0]
+y_theta = data[:, 1]
+plt.subplot(122)
+plt.title('Result Analysis')
+plt.xlabel('rho')  # 横坐标轴标题
+plt.ylabel('theta')  # 纵坐标轴标题
+plt.scatter(x_rho, y_theta, c='k', marker='.')
+plt.show()
+
+# 显示直线
+img_blue_line = cv2.cvtColor(img_src, cv2.COLOR_BGR2RGB)
+for line in lines:
+    # rho, theta = line[0]
+    rho, theta = line
+    a = np.cos(theta)
+    b = np.sin(theta)
+
+    x0 = a * rho
+    y0 = b * rho
+    x1 = int(x0 + 2000 * (-b))
+    y1 = int(y0 + 2000 * a)
+    x2 = int(x0 - 2000 * (-b))
+    y2 = int(y0 - 2000 * a)
+    cv2.line(img_blue_line, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
 # 5.显示图片
 plt.subplot(221)
@@ -195,11 +244,13 @@ plt.axis("off")
 plt.subplot(222)
 plt.imshow(im_zclose_show)
 plt.axis("off")
+# plt.subplot(223)
+# plt.imshow(img_edges, cmap="binary")   #单通道图才能使用cmap影响
 plt.subplot(223)
-plt.imshow(img_edges, cmap="binary")   #单通道图才能使用cmap影响
+plt.imshow(img_blue_line_raw, cmap="binary")   #单通道图才能使用cmap影响
 plt.axis("off")
 plt.subplot(224)
-plt.imshow(img_rgb)
+plt.imshow(img_blue_line)
 plt.axis("off")
 
 plt.show()
