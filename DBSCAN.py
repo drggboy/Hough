@@ -138,6 +138,7 @@ def DBSCAN_drawlist(lines: np.ndarray):
     type1 = cen(scaler, y_pred)
     type1 = np.array(type1)
     lines_return = ss_X.inverse_transform(type1)
+    lines_return = np.array(lines_return)
     return lines_return
     # plt.subplot(223)
     # plt.scatter(type1[:, 0], type1[:, 1], c=range(len(type1)))
