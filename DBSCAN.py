@@ -82,6 +82,7 @@ from sklearn.cluster import DBSCAN
 #         dataSet.append(list(fltLine))
 #     return dataSet
 
+# 函数返回距离质心最近的数据点。
 def cen_point(ele):
     ele = np.array(ele)
     ele = np.reshape(ele,(-1,2))
