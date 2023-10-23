@@ -6,7 +6,7 @@ def img_show(title: str, img: np.ndarray, rate = 0.6):
     cv2.imshow(title, img_show)
     cv2.waitKey(0)
 
-# 霍夫直线绘制
+# 霍夫直线绘制,此处lines中包含霍夫直线
 def Hough_lines_draw(img_src, lines):
     img = np.copy(img_src)
     for line in lines:
@@ -30,12 +30,13 @@ if __name__ == '__main__':
     # 绘制直线
     filted_hough_lines = np.load('filted_lines.npy')
     img_drawed = np.zeros_like(img_src)
+    # 在全黑的图片上绘制白色直线
     img_lines_only = Hough_lines_draw(img_drawed, filted_hough_lines)
-    # img_show('img_lines_only', img_lines_only)
+    img_show('img_lines_only', img_lines_only)
 
     # 角点检测
     gray = cv2.cvtColor(img_lines_only, cv2.COLOR_BGR2GRAY)
-    img_show('1',gray)
+    img_show('gray',gray)
     mask = np.zeros(gray.shape, np.uint8)
     dst = cv2.cornerHarris(gray, 2, 3, 0.04)
     thresh_value, img_thresh = cv2.threshold(dst, 0.01, 255, cv2.THRESH_BINARY)
@@ -65,3 +66,4 @@ if __name__ == '__main__':
             cv2.circle(img_copy, (cx, cy), 10, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.circle(img_copy, (cx, cy), 2, (0, 0, 255), -1, cv2.LINE_AA)
     img_show('img_copy',img_copy)
+    cv2.destroyAllWindows()

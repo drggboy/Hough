@@ -135,7 +135,8 @@ def Hough_lines_draw(img_src, lines):
         cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
     return img
 
-# 密度聚类前后散点图绘制
+# 密度聚
+# 类前后散点图绘制
 def scatter_compared(data1,data):
     x_rho_raw = data1[:, 0]
     y_theta_raw = data1[:, 1]
@@ -207,7 +208,7 @@ if __name__ == '__main__':
     # 使用保存设置
     A = np.load('A.npy')
     B = np.load('B.npy')
-    img_roi,_,_ = qd.img_Sub(img_roi, tune=False,A=A,B=B)
+    img_roi, _, _ = qd.img_Sub(img_roi, tune=False, A=A, B=B)
     # 手动选取
     # img_roi,A,B = qd.img_Sub(img_roi, tune=True)
     # np.save('A.npy', A)
@@ -283,7 +284,6 @@ if __name__ == '__main__':
 
     # 过滤前后 直线散点图对比
     # scatter_compared(hough_lines,filted_hough_lines)
-
     # 显示图像
     plt_four(img_src, im_zclose, img_blue_line_raw, img_blue_line_filted)
 

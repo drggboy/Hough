@@ -19,7 +19,7 @@ from sklearn.cluster import DBSCAN
 #             res.append(i)
 #     return res
 
-#密度聚类算法
+#密度聚类算法,不调用库实现
 # def DBSCAN(dataSet, e, minPts):
 #     coreObjs = {} #初始化核心对象集合
 #     C = {}
@@ -82,93 +82,80 @@ from sklearn.cluster import DBSCAN
 #         dataSet.append(list(fltLine))
 #     return dataSet
 
-# 函数返回距离质心最近的数据点。
+# 函数：返回距离质心最近的数据点。
 def cen_point(ele):
     ele = np.array(ele)
-    ele = np.reshape(ele,(-1,2))
-    mean = np.mean(ele, axis=0)
-    min_dist = np.linalg.norm(ele[0] - mean)
-    min_index = 0
+    ele = np.reshape(ele, (-1, 2))  # 将输入的数据重新整形为二维数组
+    mean = np.mean(ele, axis=0)  # 计算数据点的均值，即质心
+    min_dist = np.linalg.norm(ele[0] - mean)  # 计算第一个数据点到质心的距离作为初始最小距离
+    min_index = 0  # 记录最小距离对应的数据点索引
     for i in range(len(ele)):
-        dist = np.linalg.norm(ele[i] - mean)
-        if dist < min_dist:
+        dist = np.linalg.norm(ele[i] - mean)  # 计算当前数据点到质心的距离
+        if dist < min_dist:  # 如果距离更小，则更新最小距离和索引
             min_index = i
             min_dist = dist
-    return ele[min_index]
+    return ele[min_index]  # 返回距离质心最近的数据点
 
+# 函数：计算DBSCAN聚类结果中每个簇的簇质心和离群点
 def cen(scaler, y_pred):
-    num = max(y_pred) + 1
-    ex = np.where(y_pred == -1)    #返回的是元组，ex[0]为列表，其中包含离群点索引
+    num = max(y_pred) + 1  # 计算聚类簇数
+    ex = np.where(y_pred == -1)  # 找出离群点的索引，返回元组，ex[0]为列表，包含离群点索引
 
-    type2 = []
-    ele = []
+    type2 = []  # 存储每个簇的数据点
+    ele = []  # 临时存储数据点
     for i in range(num):
-        index = np.where(y_pred == i)
+        index = np.where(y_pred == i)  # 找出属于当前簇的数据点索引
         for k in index:
-            ele.append(scaler[k])
-        type2.append(ele)
-        ele = []
-    cen = []
-    # cen = np.zeros(shape=(num, 2))
-    # cen = np.array([])
+            ele.append(scaler[k])  # 将数据点添加到ele中
+        type2.append(ele)  # 将当前簇的数据点列表添加到type2中
+        ele = []  # 清空ele，准备存储下一个簇的数据点
+    cen = []  # 存储簇质心和离群点
     for i in range(num):
-        # cen[i,:] = cen_point(type2[i])
-        # cen = np.append(cen,cen_point(type2[i]))
-        cen.append(cen_point(type2[i]))
-    # w = scaler[ex[0]]
-    # cen.append(w)
-    for j in ex[0]:
+        cen.append(cen_point(type2[i]))  # 计算并添加当前簇的簇质心
+    for j in ex[0]:  # 添加离群点
         w = scaler[j]
-        # a = np.array(w)
         cen.append(w)
-    return cen
+    return cen  # 返回簇质心和离群点的列表
 
+# 函数：对给定的数据点进行DBSCAN聚类并返回聚类结果的簇质心和离群点
 def DBSCAN_drawlist(lines: np.ndarray):
-    dataSet = np.reshape(lines,(-1,2))
-    # dataSet=dataSet.tolist()
-    ss_X = preprocessing.StandardScaler()
-    scaler = ss_X.fit_transform(dataSet)
+    dataSet = np.reshape(lines, (-1, 2))  # 重新整形输入数据为二维数组
+    ss_X = preprocessing.StandardScaler()  # 创建一个标准化处理器对象
+    scaler = ss_X.fit_transform(dataSet)  # 对数据进行标准化处理
 
-    # plt.subplot(221)
-    # plt.scatter(scaler[:, 0], scaler[:, 1], marker='o')
-    #
-    # plt.subplot(222)
-    y_pred = DBSCAN(eps=0.07, min_samples=2).fit_predict(scaler)
-    # plt.scatter(scaler[:, 0], scaler[:, 1], c=y_pred)
+    y_pred = DBSCAN(eps=0.07, min_samples=2).fit_predict(scaler)  # 使用DBSCAN进行聚类
 
-    type1 = cen(scaler, y_pred)
-    type1 = np.array(type1)
-    lines_return = ss_X.inverse_transform(type1)
-    lines_return = np.array(lines_return)
-    return lines_return
-    # plt.subplot(223)
-    # plt.scatter(type1[:, 0], type1[:, 1], c=range(len(type1)))
-    # plt.show()
+    type1 = cen(scaler, y_pred)  # 调用cen函数计算簇质心和离群点
+    type1 = np.array(type1)  # 将结果转换为NumPy数组
+    lines_return = ss_X.inverse_transform(type1)  # 将簇质心和离群点的标准化结果逆转换为原始数据空间
+    lines_return = np.array(lines_return)  # 转换为NumPy数组
+    return lines_return  # 返回簇质心和离群点的坐标
 
-
+# 主函数
 def main():
-    dataSet = np.load('data.npy')
-    # dataSet=dataSet.tolist()
-    scaler = preprocessing.StandardScaler().fit_transform(dataSet)
+    dataSet = np.load('data.npy')  # 从文件加载数据集
+    scaler = preprocessing.StandardScaler().fit_transform(dataSet)  # 对数据进行标准化处理
 
+    # 绘制原始数据点的散点图
     plt.subplot(221)
     plt.scatter(scaler[:, 0], scaler[:, 1], marker='o')
 
+    # 使用DBSCAN聚类并绘制聚类结果的散点图
     plt.subplot(222)
     y_pred = DBSCAN(eps=0.07, min_samples=2).fit_predict(scaler)
     plt.scatter(scaler[:, 0], scaler[:, 1], c=y_pred)
 
+    # 计算簇质心和离群点，并绘制它们的散点图
     type1 = cen(scaler, y_pred)
     type1 = np.array(type1)
     plt.subplot(223)
     plt.scatter(type1[:, 0], type1[:, 1], c=range(len(type1)))
-    plt.show()
 
-    dataSet = scaler.tolist()
-    # # dataSet = loadDataSet("dataSet.txt")
-    # print(dataSet)
-    # C = DBSCAN(dataSet, 0.11, 5)
-    # draw(C, dataSet)
+    plt.show()  # 显示图形
+
+    dataSet = scaler.tolist()  # 将数据集转换为列表格式
+    # C = DBSCAN(dataSet, 0.11, 5)  # 基于旧的DBSCAN实现计算聚类结果，此部分被注释掉
+    # draw(C, dataSet)  # 基于旧的绘制聚类结果的函数，此部分被注释掉
 
 if __name__ == '__main__':
-    main()
+    main()  # 调用主函数

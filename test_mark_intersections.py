@@ -41,3 +41,4 @@ if __name__ == '__main__':
             cv2.circle(img_copy, (cx, cy), 10, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.circle(img_copy, (cx, cy), 2, (0, 0, 255), -1, cv2.LINE_AA)
     img_show('img_copy',img_copy)
+    cv2.destroyAllWindows()
